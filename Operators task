@@ -1,0 +1,24 @@
+//task1
+let itemPrice = 450.0
+let quantity = 3
+let subtotal = itemPrice * Double(quantity)
+let hasCoupon = true
+let discount = (hasCoupon && subtotal > 1000) ? subtotal * 0.10 : 0.0
+let discounted = subtotal - discount
+let gst = discounted * 0.18
+let total = discounted + gst
+let share = total / 4
+print("Each person pays: \(share)")
+let amount = 1234
+print("Hundreds: \(amount / 100)")
+print("Remainder: \(amount % 100)")
+
+//task2
+for year in [1900, 2000, 2024, 2026] {
+    print(year, (year % 4 == 0 && year % 100 != 0) || year % 400 == 0)
+}
+let n = 57
+print((1...100).contains(n))
+print(n % 2 == 0 && n % 10 != 0)
+let nickname: String? = nil
+print(nickname ?? "Guest")
