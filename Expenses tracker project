@@ -1,0 +1,325 @@
+import SwiftUI
+import Foundation
+// MARK: - Transaction Model
+struct Expense: Identifiable {
+    let id = UUID()
+    var title: String
+    var amount: Double
+    var type: String
+}
+// MARK: - Main Screen
+struct ContentView: View {
+    @State private var transactions = [
+        Expense(title: "Monthly Salary", amount: 25000, type: "Income"),
+        Expense(title: "Food", amount: 2000, type: "Expense"),
+        Expense(title: "Shopping", amount: 1500, type: "Expense"),
+        Expense(title: "Travel", amount: 1000, type: "Expense")
+    ]
+    @State private var showAdd = false
+    // Calculate Income
+    var income: Double {
+        transactions
+            .filter { $0.type == "Income" }
+            .reduce(0) { $0 + $1.amount }
+    }
+
+    // Calculate Expenses
+    var expenses: Double {
+        transactions
+            .filter { $0.type == "Expense" }
+            .reduce(0) { $0 + $1.amount }
+    }
+
+    // Calculate Balance
+    var balance: Double {
+        income - expenses
+    }
+
+    // Currency Formatting
+    func money(_ value: Double) -> String {
+        return "₹" + String(format: "%.2f", value)
+    }
+
+    var body: some View {
+
+        NavigationView {
+
+            ScrollView {
+
+                VStack(spacing: 20) {
+
+                    // MARK: Balance Card
+
+                    VStack(spacing: 10) {
+
+                        Text("TOTAL BALANCE")
+                            .font(.headline)
+
+                        Text(money(balance))
+                            .font(.largeTitle)
+                            .bold()
+
+                        Text("Smart Expense Tracker")
+                            .font(.caption)
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding(25)
+                    .background(Color.green)
+                    .cornerRadius(18)
+
+                    // MARK: Income and Expense Cards
+
+                    HStack(spacing: 12) {
+
+                        summary(
+                            "Income",
+                            income,
+                            .green
+                        )
+
+                        summary(
+                            "Expenses",
+                            expenses,
+                            .red
+                        )
+                    }
+
+                    // MARK: Add Transaction Button
+
+                    Button(action: {
+                        showAdd = true
+                    }) {
+
+                        Label(
+                            "Add Transaction",
+                            systemImage: "plus.circle.fill"
+                        )
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.green)
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                    }
+
+                    // MARK: Transaction History
+
+                    VStack(alignment: .leading, spacing: 12) {
+
+                        Text("Transaction History")
+                            .font(.title2)
+                            .bold()
+
+                        if transactions.isEmpty {
+
+                            Text("No transactions available")
+                                .foregroundColor(.gray)
+                                .padding()
+
+                        } else {
+
+                            ForEach(transactions) { item in
+
+                                HStack {
+
+                                    VStack(alignment: .leading, spacing: 5) {
+
+                                        Text(item.title)
+                                            .font(.headline)
+
+                                        Text(item.type)
+                                            .font(.caption)
+                                            .foregroundColor(.gray)
+                                    }
+
+                                    Spacer()
+
+                                    Text(
+                                        (item.type == "Income" ? "+" : "-")
+                                        + money(item.amount)
+                                    )
+                                    .foregroundColor(
+                                        item.type == "Income" ? .green : .red
+                                    )
+                                    .fontWeight(.bold)
+
+                                    // Delete Button
+
+                                    Button(action: {
+                                        deleteTransaction(item)
+                                    }) {
+
+                                        Image(systemName: "trash")
+                                            .foregroundColor(.red)
+                                    }
+                                    .padding(.leading, 5)
+                                }
+                                .padding(.vertical, 8)
+
+                                Divider()
+                            }
+                        }
+                    }
+                    .frame(
+                        maxWidth: .infinity,
+                        alignment: .leading
+                    )
+                }
+                .padding()
+            }
+            .navigationTitle("My Expenses")
+
+            // MARK: Add Transaction Sheet
+
+            .sheet(isPresented: $showAdd) {
+
+                AddTransactionView(
+                    isPresented: $showAdd
+                ) { title, amount, type in
+
+                    let newTransaction = Expense(
+                        title: title,
+                        amount: amount,
+                        type: type
+                    )
+
+                    transactions.append(newTransaction)
+                }
+            }
+        }
+    }
+
+    // MARK: Summary Card
+
+    func summary(
+        _ title: String,
+        _ amount: Double,
+        _ color: Color
+    ) -> some View {
+
+        VStack(spacing: 10) {
+
+            Text(title)
+                .font(.headline)
+
+            Text(money(amount))
+                .font(.headline)
+                .foregroundColor(color)
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(Color.gray.opacity(0.12))
+        .cornerRadius(12)
+    }
+
+    // MARK: Delete Transaction
+
+    func deleteTransaction(_ item: Expense) {
+
+        transactions.removeAll {
+            $0.id == item.id
+        }
+    }
+}
+
+// MARK: - Add Transaction Screen
+
+struct AddTransactionView: View {
+
+    @Binding var isPresented: Bool
+
+    @State private var title = ""
+    @State private var amount = ""
+    @State private var type = "Expense"
+
+    var onSave: (String, Double, String) -> Void
+
+    var body: some View {
+
+        NavigationView {
+
+            Form {
+
+                Section(header: Text("Transaction Details")) {
+
+                    // Transaction Title
+
+                    TextField(
+                        "Enter transaction name",
+                        text: $title
+                    )
+
+                    // Transaction Amount
+
+                    TextField(
+                        "Enter amount",
+                        text: $amount
+                    )
+                    .keyboardType(.decimalPad)
+
+                    // Transaction Type
+
+                    Picker(
+                        "Transaction Type",
+                        selection: $type
+                    ) {
+
+                        Text("Income")
+                            .tag("Income")
+
+                        Text("Expense")
+                            .tag("Expense")
+                    }
+                    .pickerStyle(SegmentedPickerStyle())
+                }
+
+                // Save Button
+
+                Button(action: {
+
+                    let cleanTitle = title.trimmingCharacters(
+                        in: .whitespacesAndNewlines
+                    )
+
+                    if let value = Double(amount),
+                       value > 0,
+                       !cleanTitle.isEmpty {
+
+                        onSave(
+                            cleanTitle,
+                            value,
+                            type
+                        )
+
+                        isPresented = false
+                    }
+
+                }) {
+
+                    Text("Save Transaction")
+                        .font(.headline)
+                        .foregroundColor(.green)
+                }
+            }
+            .navigationTitle("Add Transaction")
+
+            // Close Button
+
+            .navigationBarItems(
+                trailing: Button("Close") {
+                    isPresented = false
+                }
+            )
+        }
+    }
+}
+
+// MARK: - Preview
+
+struct ContentView_Previews: PreviewProvider {
+
+    static var previews: some View {
+        ContentView()
+    }
+}
