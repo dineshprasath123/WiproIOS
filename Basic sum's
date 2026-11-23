@@ -1,0 +1,22 @@
+//Sum of first N natural numbers
+var n = 5
+var sum = 0
+for i in 1...n {
+    sum += i
+}
+print(sum)
+//Factorial of a number
+var n = 5
+var fact = 1
+for i in 1...n {
+    fact *= i
+}
+print(fact)
+//Count digits
+var number = 12345
+var count = 0
+while number > 0 {
+    count += 1
+    number /= 10
+}
+print(count)
