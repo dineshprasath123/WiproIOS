@@ -1,0 +1,47 @@
+import Foundation
+// 1. Create Enum
+enum BookStatus {
+    case available
+    case borrowed(by: String, dueIns: Int)
+    case reserved(for: String)
+    // Computed Property
+    var label: String {
+        switch self {
+        case .available:
+            return "Available"
+        case .borrowed(let name, let days):
+            return "Borrowed by \(name), Due in \(days) days"
+
+        case .reserved(let name):
+            return "Reserved for \(name)"
+        }
+    }
+}
+// 2. Create Struct
+struct Book {
+    var title: String
+    var status: BookStatus = .available
+}
+// 3. Create Class
+class Member {
+    var name: String
+    var borrowedBooks: [String]
+    init(name: String, borrowedBooks: [String] = []) {
+        self.name = name
+        self.borrowedBooks = borrowedBooks
+    }
+}
+// 4. Create and Copy Book
+var book1 = Book(title: "Swift Programming")
+var book2 = book1
+book2.status = .borrowed(by: "Vasan", dueIns: 7)
+// Print both books
+print("Book 1:", book1.title, "-", book1.status.label)
+print("Book 2:", book2.title, "-", book2.status.label)
+// 5. Create and Copy Member
+let member1 = Member(name: "Vasan")
+let member2 = member1
+member2.name = "Arun"
+// Print both members
+print("Member 1:", member1.name)
+print("Member 2:", member2.name)
